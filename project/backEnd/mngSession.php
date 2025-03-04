@@ -3,7 +3,7 @@ include("commons.php");
 
 function userAuthentication($mail, $pass, &$name)
 {
-	$query = "SELECT users.* FROM user WHERE users.mail='$mail'";
+	$query = "SELECT users.* FROM users WHERE users.mail='$mail'";
 	$row = doQuery($query)[0];
 	$name = $row['name'];
 	return (password_verify($pass, $row['pass'])) ? true : false;

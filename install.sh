@@ -230,8 +230,8 @@ import_databases() {
 
 # Función principal
 main() {
-    ask_domain_name
     check_root
+    ask_domain_name
     check_os
     install_dependencies
     add_ansible_repo
