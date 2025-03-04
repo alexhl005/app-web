@@ -1,12 +1,18 @@
 #!/bin/bash
 
-# Script para instalar Ansible con verificaciones y seguridad mejorada
+# Script para instalar Ansible, desplegar el contenido del directorio "project" en /var/www/html y ejecutar un playbook de Ansible
 
 # Colores para la salida
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
+
+# URL del repositorio de GitHub
+REPO_URL="https://github.com/alexhl005/app-web.git"
+REPO_DIR="app-web"
+PROJECT_DIR="project"
+ANSIBLE_PLAYBOOK_PATH="/var/www/html/ansible/main.yml"
 
 # Función para verificar si el script se está ejecutando como root
 check_root() {
@@ -38,7 +44,7 @@ command_exists() {
 # Función para instalar dependencias necesarias
 install_dependencies() {
     echo -e "${YELLOW}Instalando dependencias necesarias...${NC}"
-    sudo apt-get install -y software-properties-common
+    sudo apt-get install -y software-properties-common git
     if [ $? -ne 0 ]; then
         echo -e "${RED}Error al instalar dependencias.${NC}" >&2
         exit 1
@@ -86,12 +92,61 @@ verify_installation() {
     fi
 }
 
-# Función para copiar el contenido del directorio project a /var/www/html
+# Función para clonar el repositorio de GitHub
+clone_repository() {
+    echo -e "${YELLOW}Clonando el repositorio de GitHub...${NC}"
+    if [ -d "$REPO_DIR" ]; then
+        echo -e "${YELLOW}El directorio $REPO_DIR ya existe. Actualizando el repositorio...${NC}"
+        cd "$REPO_DIR"
+        git pull origin main
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Error al actualizar el repositorio.${NC}" >&2
+            exit 1
+        fi
+        cd ..
+    else
+        git clone "$REPO_URL" "$REPO_DIR"
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Error al clonar el repositorio.${NC}" >&2
+            exit 1
+        fi
+    fi
+}
+
+# Función para copiar solo el contenido del directorio "project" a /var/www/html
 copy_project_files() {
-    echo -e "${YELLOW}Copiando archivos del directorio project a /var/www/html...${NC}"
-    sudo cp -r project/* /var/www/html/
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}Error al copiar los archivos.${NC}" >&2
+    echo -e "${YELLOW}Copiando el contenido de $PROJECT_DIR a /var/www/html...${NC}"
+    
+    # Verificar si el directorio "project" existe en el repositorio clonado
+    if [ -d "$REPO_DIR/$PROJECT_DIR" ]; then
+        # Limpiar /var/www/html antes de copiar
+        echo -e "${YELLOW}Limpiando /var/www/html...${NC}"
+        sudo rm -rf /var/www/html/*
+
+        # Copiar solo el contenido de "project" a /var/www/html
+        sudo cp -r "$REPO_DIR/$PROJECT_DIR"/* /var/www/html/
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Error al copiar los archivos.${NC}" >&2
+            exit 1
+        fi
+    else
+        echo -e "${RED}El directorio $PROJECT_DIR no existe en el repositorio.${NC}" >&2
+        exit 1
+    fi
+}
+
+# Función para ejecutar el playbook de Ansible
+run_ansible_playbook() {
+    echo -e "${YELLOW}Ejecutando el playbook de Ansible...${NC}"
+    if [ -f "$ANSIBLE_PLAYBOOK_PATH" ]; then
+        cd /var/www/html/ansible
+        ansible-playbook main.yml
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Error al ejecutar el playbook de Ansible.${NC}" >&2
+            exit 1
+        fi
+    else
+        echo -e "${RED}El archivo $ANSIBLE_PLAYBOOK_PATH no existe.${NC}" >&2
         exit 1
     fi
 }
@@ -105,7 +160,10 @@ main() {
     update_package_cache
     install_ansible
     verify_installation
+    clone_repository
     copy_project_files
+    run_ansible_playbook
+    echo -e "${GREEN}Proceso completado con éxito.${NC}"
 }
 
 # Ejecutar la función principal

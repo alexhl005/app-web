@@ -39,10 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   file_put_contents($yamlFile, $yamlContent);
 
   // 6. Ejecutar el playbook de Ansible (opcional)
-  #$command = 'ansible-playbook ansible/main.yml -u www-data --skip-tags "mysql-root, prerequisites"';
-  #$output = shell_exec($command);
+  $command = 'ansible-playbook ansible/main.yml -u www-data --skip-tags "mysql-root, prerequisites"';
+  $output = shell_exec($command);
 
   // 7. Mostrar la salida del comando (opcional)
-  #echo "<pre>Ansible Output:\n$output</pre>";
+  echo "<pre>Ansible Output:\n$output</pre>";
 }
 ?>

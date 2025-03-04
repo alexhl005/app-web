@@ -14,14 +14,6 @@
         line: "127.0.0.1 {{ domainName }}"
       tags: [ prerequisites ]
 
-    - name: Instalar Ansible mediante script
-      command: bash /path/to/ansible/install_ansible.sh
-      tags: [ prerequisites ]
-
-      tags: [ prerequisites ]
-
-      tags: [ prerequisites ]
-
     - name: Instalar PHP y dependencias
       apt:
         name:
