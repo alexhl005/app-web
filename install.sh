@@ -14,7 +14,8 @@ REPO_DIR="app-web"
 PROJECT_DIR="project"
 ANSIBLE_PLAYBOOK_PATH="/var/www/html/ansible/main.yml"
 SQL_DIR="/var/www/html/sql"
-VARS_FILE="/var/www/html/vars/varsMain.yml"
+VARS_FILE="/var/www/html/ansible/vars/varsMain.yml"
+DATABASE_NAME="loansdb"
 
 # Función para solicitar el valor de domainName
 ask_domain_name() {
@@ -195,6 +196,17 @@ check_and_install_mariadb() {
     fi
 }
 
+# Función para crear la base de datos loansdb
+create_database() {
+    echo -e "${YELLOW}Creando la base de datos $DATABASE_NAME...${NC}"
+    sudo mysql -u root -e "CREATE DATABASE IF NOT EXISTS $DATABASE_NAME;"
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Error al crear la base de datos $DATABASE_NAME.${NC}" >&2
+        exit 1
+    fi
+    echo -e "${GREEN}Base de datos $DATABASE_NAME creada correctamente.${NC}"
+}
+
 # Función para importar bases de datos desde la carpeta sql
 import_databases() {
     echo -e "${YELLOW}Importando bases de datos desde $SQL_DIR...${NC}"
@@ -203,7 +215,7 @@ import_databases() {
         for SQL_FILE in "$SQL_DIR"/*.sql; do
             if [ -f "$SQL_FILE" ]; then
                 echo -e "${YELLOW}Importando $SQL_FILE...${NC}"
-                mysql -u root < "$SQL_FILE"
+                mysql -u root -D $DATABASE_NAME < "$SQL_FILE"
                 if [ $? -ne 0 ]; then
                     echo -e "${RED}Error al importar $SQL_FILE.${NC}" >&2
                     exit 1
@@ -229,9 +241,10 @@ main() {
     clone_repository
     copy_project_files
     check_and_install_mariadb
+    create_database
     import_databases
     update_vars_file
-    #run_ansible_playbook
+    run_ansible_playbook
     echo -e "${GREEN}Proceso completado con éxito.${NC}"
 }
 
