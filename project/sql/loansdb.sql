@@ -31,20 +31,20 @@ SET time_zone = "+00:00";
 -- Estructura de tabla para la tabla `users`
 --
 
-CREATE TABLE `USERS` (
-  `MAIL` VARCHAR(60) NOT NULL,
-  `PASS` VARCHAR(60) NOT NULL,
-  `NAME` VARCHAR(45) NOT NULL
+CREATE TABLE `users` (
+  `mail` VARCHAR(60) NOT NULL,
+  `pass` VARCHAR(60) NOT NULL,
+  `name` VARCHAR(45) NOT NULL
 ) ENGINE=INNODB DEFAULT CHARSET=UTF8MB4 COLLATE=UTF8MB4_GENERAL_CI;
 
 --
 -- Volcado de datos para la tabla `users`
 --
 
-INSERT INTO `USERS` (
-  `MAIL`,
-  `PASS`,
-  `NAME`
+INSERT INTO `users` (
+  `mail`,
+  `pass`,
+  `name`
 ) VALUES (
   'user@domain.ext',
   '$2y$10$xjoMj/Gq6Ea7E.UrgDwma.cvlI/v/Sh2m9WL8amtRlr7xQtY58iV.',
@@ -58,9 +58,9 @@ INSERT INTO `USERS` (
 --
 -- Indices de la tabla `users`
 --
-ALTER TABLE `USERS`
+ALTER TABLE `users`
   ADD PRIMARY KEY (
-    `MAIL`
+    `mail`
   );
 
 COMMIT;

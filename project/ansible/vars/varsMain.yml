@@ -12,7 +12,7 @@
   mysqlRootPassword: "root"
 
   #Dependencies
-  phpModules: [ 'php-tokenizer', 'php-curl', 'php-gd', 'php-mbstring', 'php-xml', 'php-xmlrpc', 'php-soap', 'php-intl', 'php-zip', 'php-imagick', 'php-gmp', 'php-bcmath' ]
+  phpModules: [ 'php-tokenizer', 'php-curl', 'php-gd', 'php-mbstring', 'php-xmlrpc', 'php-soap', 'php-intl', 'php-zip', 'php-imagick', 'php-gmp', 'php-bcmath' ]
 
   #Enabled Modules
   a2modules: [ 'rewrite', 'headers', 'env', 'dir', 'mime']

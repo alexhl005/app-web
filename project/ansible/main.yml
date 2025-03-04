@@ -108,7 +108,7 @@
         name: "{{ item }}"
         update_cache: yes
         state: latest
-      loop: [ 'mariadb-server', 'python3-pymysql', 'php-mysql' ]
+      loop: [ 'python3-pymysql', 'php-mysql' ]
       tags: [ prerequisites ]
 
     - name: Instalar extensiones de PHP
