@@ -71,7 +71,7 @@ command_exists() {
 # Función para instalar dependencias necesarias
 install_dependencies() {
     echo -e "${YELLOW}Instalando dependencias necesarias...${NC}"
-    sudo apt-get install -y software-properties-common git mysql-client
+    sudo apt-get install -y software-properties-common git
     if [ $? -ne 0 ]; then
         echo -e "${RED}Error al instalar dependencias.${NC}" >&2
         exit 1
@@ -142,6 +142,7 @@ clone_repository() {
 
 # Función para copiar solo el contenido del directorio "project" a /var/www/html
 copy_project_files() {
+    mkdir -p /var/www/html
     echo -e "${YELLOW}Copiando el contenido de $PROJECT_DIR a /var/www/html...${NC}"
 
     # Verificar si el directorio "project" existe en el repositorio clonado
@@ -178,6 +179,22 @@ run_ansible_playbook() {
     fi
 }
 
+# Función para verificar e instalar MariaDB
+check_and_install_mariadb() {
+    echo -e "${YELLOW}Verificando si MariaDB está instalado...${NC}"
+    if command_exists mariadb; then
+        echo -e "${GREEN}MariaDB ya está instalado.${NC}"
+    else
+        echo -e "${YELLOW}Instalando MariaDB...${NC}"
+        sudo apt-get install -y mariadb-server
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Error al instalar MariaDB.${NC}" >&2
+            exit 1
+        fi
+        echo -e "${GREEN}MariaDB se ha instalado correctamente.${NC}"
+    fi
+}
+
 # Función para importar bases de datos desde la carpeta sql
 import_databases() {
     echo -e "${YELLOW}Importando bases de datos desde $SQL_DIR...${NC}"
@@ -186,7 +203,7 @@ import_databases() {
         for SQL_FILE in "$SQL_DIR"/*.sql; do
             if [ -f "$SQL_FILE" ]; then
                 echo -e "${YELLOW}Importando $SQL_FILE...${NC}"
-                mysql -u root -p < "$SQL_FILE"
+                mysql -u root < "$SQL_FILE"
                 if [ $? -ne 0 ]; then
                     echo -e "${RED}Error al importar $SQL_FILE.${NC}" >&2
                     exit 1
@@ -202,7 +219,6 @@ import_databases() {
 # Función principal
 main() {
     ask_domain_name
-    update_vars_file
     check_root
     check_os
     install_dependencies
@@ -212,7 +228,9 @@ main() {
     verify_installation
     clone_repository
     copy_project_files
+    check_and_install_mariadb
     import_databases
+    update_vars_file
     #run_ansible_playbook
     echo -e "${GREEN}Proceso completado con éxito.${NC}"
 }
