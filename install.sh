@@ -86,6 +86,16 @@ verify_installation() {
     fi
 }
 
+# Función para copiar el contenido del directorio project a /var/www/html
+copy_project_files() {
+    echo -e "${YELLOW}Copiando archivos del directorio project a /var/www/html...${NC}"
+    sudo cp -r project/* /var/www/html/
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Error al copiar los archivos.${NC}" >&2
+        exit 1
+    fi
+}
+
 # Función principal
 main() {
     check_root
@@ -95,6 +105,7 @@ main() {
     update_package_cache
     install_ansible
     verify_installation
+    copy_project_files
 }
 
 # Ejecutar la función principal
