@@ -3,7 +3,7 @@
 
 #MAIN.YML
   #Extra Vars
-  domainName: 'ahl'
+  domainName: ''
   #PhpMyAdmin Vars
   phpmyadminUser: 'admin'
   phpmyadminPass: 'admin'
@@ -18,8 +18,8 @@
   a2modules: [ 'rewrite', 'headers', 'env', 'dir', 'mime']
 
 # Instalation Option
-  option: [ '', 'wordpress', 'nextcloud', 'moodle' ]
-  commonNames: [ 'CN={{lampDomain}}', '/CN={{wpDomain}}', '/CN={{ncDomain}}', '/CN={{mdDomain}}' ]
+  option: [ '', '', '', '' ]
+  commonNames: [ '/CN={{lampDomain}}', '/CN={{wpDomain}}', '/CN={{ncDomain}}', '/CN={{mdDomain}}' ]
 
 #VSFTPD.YML
   #Extra Vars

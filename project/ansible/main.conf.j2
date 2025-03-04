@@ -2,11 +2,11 @@
     ServerAdmin webmaster@localhost
     ServerName {{ domainName }}
     #ServerAlias www.{{ domainName }}
-    DocumentRoot /var/www/web/
+    DocumentRoot /var/www/html/
     ErrorLog ${APACHE_LOG_DIR}/error.log
     CustomLog ${APACHE_LOG_DIR}/access.log combined
 
-    <Directory /var/www/web/>
+    <Directory /var/www/html/>
           Options -Indexes
           AllowOverride All
     </Directory>

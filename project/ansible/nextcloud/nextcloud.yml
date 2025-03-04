@@ -1,4 +1,4 @@
-    - name: Añadir dominio wp a /etc/hosts en servidor
+    - name: Añadir dominio nc a /etc/hosts en servidor
       ansible.builtin.lineinfile:
         path: /etc/hosts
         insertafter: "127.0.0.1 localhost"
@@ -18,7 +18,6 @@
       template:
         src: "ncApache.conf.j2"
         dest: "/etc/apache2/sites-available/{{ ncDomain }}.conf"
-      notify: Reload Apache
       tags: [ apacheNC ]
 
     - name: Enable new site

@@ -14,6 +14,32 @@ REPO_DIR="app-web"
 PROJECT_DIR="project"
 ANSIBLE_PLAYBOOK_PATH="/var/www/html/ansible/main.yml"
 SQL_DIR="/var/www/html/sql"
+VARS_FILE="/var/www/html/vars/varsMain.yml"
+
+# Función para solicitar el valor de domainName
+ask_domain_name() {
+    echo -e "${YELLOW}Por favor, introduce el valor de domainName:${NC}"
+    read -r domainName
+    if [ -z "$domainName" ]; then
+        echo -e "${RED}El valor de domainName no puede estar vacío.${NC}" >&2
+        exit 1
+    fi
+}
+
+# Función para actualizar el archivo varsMain.yml
+update_vars_file() {
+    echo -e "${YELLOW}Actualizando el archivo varsMain.yml con domainName: $domainName...${NC}"
+    if [ -f "$VARS_FILE" ]; then
+        sed -i "s/domainName:.*/domainName: $domainName/" "$VARS_FILE"
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Error al actualizar el archivo varsMain.yml.${NC}" >&2
+            exit 1
+        fi
+    else
+        echo -e "${RED}El archivo $VARS_FILE no existe.${NC}" >&2
+        exit 1
+    fi
+}
 
 # Función para verificar si el script se está ejecutando como root
 check_root() {
@@ -175,6 +201,8 @@ import_databases() {
 
 # Función principal
 main() {
+    ask_domain_name
+    update_vars_file
     check_root
     check_os
     install_dependencies
@@ -184,8 +212,8 @@ main() {
     verify_installation
     clone_repository
     copy_project_files
-    run_ansible_playbook
     import_databases
+    #run_ansible_playbook
     echo -e "${GREEN}Proceso completado con éxito.${NC}"
 }
 
