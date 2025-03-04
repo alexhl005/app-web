@@ -1,0 +1,49 @@
+  # APACHE2 
+    - name: Añadir dominio a /etc/hosts en servidor
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        insertafter: "127.0.0.1 localhost"
+        line: "127.0.0.1 {{ lampDomain }}"
+
+    - name: Crear directorio para lamp
+      file:
+        path: "{{ virtualRoot }}/lamp"
+        state: directory
+        owner: vsftpd
+        group: ansible
+        mode: '0775'
+        recurse: yes
+
+    - name: Set up Apache VirtualHost
+      template:
+        src: "lamp.conf.j2"
+        dest: "/etc/apache2/sites-available/{{ lampDomain }}.conf"
+      tags: [ apache ]
+
+    - name: Enable new site
+      shell: /usr/sbin/a2ensite {{ lampDomain }}.conf
+      tags: [ apache ]
+
+    - name: Restart Apache to apply changes
+      service:
+        name: apache2
+        state: restarted
+      tags: [ apache ]
+
+    - name: Set up VirtualHost
+      template:
+        src: "lampNG.conf.j2"
+        dest: "/etc/nginx/sites-available/{{ lampDomain }}"
+
+    - name: Crear enlace simbólico para habilitar el sitio
+      file:
+        src: /etc/nginx/sites-available/{{ lampDomain }}
+        dest: /etc/nginx/sites-enabled/{{ lampDomain }}
+        state: link
+      become: yes
+
+    - name: Reiniciar Nginx para aplicar cambios
+      service:
+        name: nginx
+        state: restarted
+      become: yes

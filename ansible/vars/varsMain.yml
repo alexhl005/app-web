@@ -1,0 +1,45 @@
+#Virtual Root
+  virtualRoot: "/var/www/web"
+
+#MAIN.YML
+  #Extra Vars
+  domainName: 'ahl'
+  #PhpMyAdmin Vars
+  phpmyadminUser: 'admin'
+  phpmyadminPass: 'admin'
+    
+  #MySQL Vars
+  mysqlRootPassword: "root"
+
+  #Dependencies
+  phpModules: [ 'php-tokenizer', 'php-curl', 'php-gd', 'php-mbstring', 'php-xml', 'php-xmlrpc', 'php-soap', 'php-intl', 'php-zip', 'php-imagick', 'php-gmp', 'php-bcmath' ]
+
+  #Enabled Modules
+  a2modules: [ 'rewrite', 'headers', 'env', 'dir', 'mime']
+
+# Instalation Option
+  option: [ '', 'wordpress', 'nextcloud', 'moodle' ]
+  commonNames: [ 'CN={{lampDomain}}', '/CN={{wpDomain}}', '/CN={{ncDomain}}', '/CN={{mdDomain}}' ]
+
+#VSFTPD.YML
+  #Extra Vars
+  ftpUser: "ftpu"
+  ftpPass: "ftpu"
+
+#LAMP.YML
+  #Extra Vars
+  lampDomain: "vb"
+
+#WORDPRESS.YML
+  #Extra vars
+  wpDomain: "wp"
+  wpDB: "wpdb"
+  wpDBU: "wpu"
+  wpDBP: "wpu"
+
+#NEXTCLOUD.YML
+  #Extra vars
+  ncDomain: "nc"
+  ncDB: "ncdb"
+  ncDBU: "ncu"
+  ncDBP: "ncu"

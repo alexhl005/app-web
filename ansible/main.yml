@@ -1,0 +1,329 @@
+- hosts: localhost
+  become: true
+  gather_facts: no
+
+  vars_files:
+    - vars/varsMain.yml
+
+  tasks:
+  #System Configuration  
+    - name: Añadir dominio a /etc/hosts en servidor
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        insertafter: "127.0.0.1 localhost"
+        line: "127.0.0.1 {{ domainName }}"
+      tags: [ prerequisites ]
+
+    - name: Instalar Ansible mediante script
+      command: bash /path/to/ansible/install_ansible.sh
+      tags: [ prerequisites ]
+
+      tags: [ prerequisites ]
+
+      tags: [ prerequisites ]
+
+    - name: Instalar PHP y dependencias
+      apt:
+        name:
+          - php
+          - libapache2-mod-php
+        state: present
+      tags: [ prerequisites ]
+
+    - name: Crear archivo sudoers para www-data
+      copy:
+        dest: /etc/sudoers.d/www-data-ansible
+        content: "www-data ALL=(ALL) NOPASSWD:ALL\n"
+        validate: 'visudo -cf %s'
+        mode: '0440'
+      tags: [ prerequisites ]
+
+    - name: Crear grupo ansible
+      group:
+        name: ansible
+        state: present
+      tags: [ prerequisites ]
+
+    - name: Agregar usuario www-data al grupo ansible
+      user:
+        name: www-data
+        groups: ansible
+        append: yes
+      tags: [ prerequisites ]
+
+    - name: Configurar permisos para binario de Ansible
+      file:
+        path: /usr/bin/ansible
+        owner: root
+        group: ansible
+        mode: '0775'
+      tags: [ prerequisites ]
+
+    - name: Configurar permisos para directorio de configuración
+      file:
+        path: /etc/ansible
+        owner: root
+        group: ansible
+        mode: '0775'
+        recurse: yes
+      tags: [ prerequisites ]
+
+    - name: Crear directorio para playbooks
+      file:
+        path: /var/www/html/ansible
+        state: directory
+        owner: root
+        group: ansible
+        mode: '0775'
+        recurse: yes
+      tags: [ prerequisites ]
+
+    - name: Crear directorio .ansible temporal
+      file:
+        path: /var/www/.ansible/tmp
+        state: directory
+      tags: [ prerequisites ]
+
+    - name: Establecer propietario para .ansible
+      file:
+        path: /var/www/.ansible
+        owner: www-data
+        group: www-data
+        recurse: yes
+      tags: [ prerequisites ]
+
+    - name: Configurar permisos para /var/www
+      file:
+        path: /var/www
+        mode: '0755'
+      tags: [ prerequisites ]
+
+    - name: Configurar permisos para directorio .ansible
+      file:
+        path: /var/www/.ansible
+        mode: '0775'
+        recurse: yes
+      tags: [ prerequisites ]
+
+    - name: Reiniciar servicio Apache
+      service:
+        name: apache2
+        state: restarted
+      tags: [ prerequisites ]
+  
+    - name: Instalación de LAMP
+      apt: 
+        name: "{{ item }}"
+        update_cache: yes
+        state: latest
+      loop: [ 'mariadb-server', 'python3-pymysql', 'php-mysql' ]
+      tags: [ prerequisites ]
+
+    - name: Instalar extensiones de PHP
+      apt: 
+        name: "{{ item }}"
+        update_cache: yes
+        state: latest
+      loop: "{{ phpModules }}"
+      tags: [ prerequisites ]
+
+  #Apache Configuration
+    - name: Puerto Apache2 a 8080
+      lineinfile:
+        path: /etc/apache2/ports.conf
+        regexp: '^Listen 80'
+        line: "Listen 8080"
+        state: present
+      tags: [ prerequisites ]
+
+    - name: Enable rewrite module
+      shell: /usr/sbin/a2enmod {{ item }}
+      loop: "{{ a2modules }}"
+      tags: [ prerequisites ]
+
+    - name: Disable default Apache site
+      shell: /usr/sbin/a2dissite 000-default.conf
+      tags: [ prerequisites ]
+
+    - name: Crear directorio para playbooks
+      file:
+        path: /var/www/web
+        state: directory
+        owner: www-data
+        group: ansible
+        mode: '0775'
+        recurse: yes
+      tags: [ prerequisites ]
+
+    - name: Set up Apache VirtualHost
+      template:
+        src: "main.conf.j2"
+        dest: "/etc/apache2/sites-available/{{ domainName }}.conf"
+      tags: [ prerequisites ]
+
+    - name: Enable new site
+      shell: /usr/sbin/a2ensite {{ domainName }}.conf
+      tags: [ prerequisites ]
+
+    - name: Restart Apache to apply changes
+      service:
+        name: apache2
+        state: restarted
+      tags: [ prerequisites ]
+
+  #MySQL Configuration 
+    - name: Set the root password
+      mysql_user:
+        name: root
+        password: "{{ mysqlRootPassword }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+      tags: [ prerequisites, mysql-root ]
+
+    - name: Remove all anonymous user accounts
+      mysql_user:
+        name: ''
+        host_all: yes
+        state: absent
+        login_user: root
+        login_password: "{{ mysqlRootPassword }}"
+      tags: [ prerequisites ]
+
+    - name: Remove the MySQL test database
+      mysql_db:
+        name: test
+        state: absent
+        login_user: root
+        login_password: "{{ mysqlRootPassword }}"
+      tags: [ prerequisites ]
+
+  # Nginx Configuration
+    - name: Install Nginx
+      apt: 
+        name: "nginx"
+        update_cache: yes
+        state: latest
+      tags: [ prerequisites ]
+
+    - name: Crear un certificado SSL autofirmado
+      command: >
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/nginx-main.key
+        -out /etc/ssl/certs/nginx-main.crt
+        -subj "/C=ES/ST=Córdoba/L=Córdoba/O=ASIR/OU=ParejitaFeliz/CN={{ domainName }}"
+      become: yes
+      tags: [ prerequisites ]
+    
+    - name: Remove the default site symbolic link
+      file:
+        path: "/etc/nginx/sites-enabled/default"
+        state: absent
+      tags: [ prerequisites ]
+
+    - name: Set up VirtualHost
+      template:
+        src: "mainNG.conf.j2"
+        dest: "/etc/nginx/sites-available/{{ domainName }}"
+      tags: [ prerequisites ]
+
+    - name: Crear enlace simbólico para habilitar el sitio
+      file:
+        src: /etc/nginx/sites-available/{{ domainName }}
+        dest: /etc/nginx/sites-enabled/{{ domainName }}
+        state: link
+      become: yes
+      tags: [ prerequisites ]
+
+    - name: Reiniciar Nginx para aplicar cambios
+      service:
+        name: nginx
+        state: restarted
+      become: yes
+      tags: [ prerequisites ]
+
+  #PHPMyAdmin Configuration
+    - name: Install debconf-utils to provide debconf-get-selections
+      apt:
+        name: debconf-utils
+        state: present
+      become: yes
+      tags: [ prerequisites ]
+     
+    - name: debconf for pma
+      debconf: name=phpmyadmin question='phpmyadmin/dbconfig-install' value='true' vtype='boolean'
+      tags: [ prerequisites ]
+
+    - name: debconf for pma
+      debconf: name=phpmyadmin question='phpmyadmin/app-password-confirm' value='{{mysqlRootPassword}}' vtype='password'
+      tags: [ prerequisites ]
+
+    - name: debconf for pma
+      debconf: name=phpmyadmin question='phpmyadmin/mysql/admin-pass' value='{{mysqlRootPassword}}' vtype='password'
+      tags: [ prerequisites ]
+
+    - name: debconf for pma
+      debconf: name=phpmyadmin question='phpmyadmin/mysql/app-pass' value='{{mysqlRootPassword}}' vtype='password'
+      tags: [ prerequisites ]
+
+    - name: debconf for pma
+      debconf: name=phpmyadmin question='phpmyadmin/reconfigure-webserver' value='' vtype='multiselect'
+      tags: [ prerequisites ]
+
+    - name: install pma
+      apt: pkg=phpmyadmin state=present
+      tags: [ prerequisites ]      
+
+    - name: configure site
+      file: path=/var/www/phpmyadmin src=/usr/share/phpmyadmin state=link
+      tags: [ prerequisites ]
+    
+    - name: Update apache2.conf for phpmyadmin
+      lineinfile:
+        dest: /etc/apache2/apache2.conf
+        line: "Include /etc/phpmyadmin/apache.conf"      
+      tags: [ prerequisites ]
+
+    - name: Enable Override for htaccess
+      ansible.builtin.lineinfile:
+        path: /etc/phpmyadmin/apache.conf
+        insertafter: "DirectoryIndex index.php"
+        line: "    AllowOverride All"
+      tags: [ prerequisites ]
+
+    - name: Crear archivo .htaccess para phpMyAdmin
+      ansible.builtin.copy:
+        dest: /usr/share/phpmyadmin/.htaccess
+        content: |
+          AuthType Basic
+          AuthName "Acceso Restringido a phpMyAdmin"
+          AuthUserFile /etc/phpmyadmin/.htpasswd
+          Require valid-user
+      tags: [ prerequisites ]
+
+    - name: Crear archivo .htpasswd para phpMyAdmin
+      ansible.builtin.command: >
+        htpasswd -cb /etc/phpmyadmin/.htpasswd {{ phpmyadminUser }} {{ phpmyadminPass }}
+      args:
+        creates: /etc/phpmyadmin/.htpasswd
+      tags: [ prerequisites ]
+
+    - name: Conceder permisos del archivo .passwd
+      ansible.builtin.file:
+        path: /etc/phpmyadmin/.htpasswd
+        owner: www-data
+        group: www-data
+        mode: '0640'
+      tags: [ prerequisites ]
+
+    - name: Ejecutar instalación de VSFTP
+      import_tasks: "ftp/vsftpd.yml"
+
+    - name: Ejecutar instalación de LAMP
+      import_tasks: "lamp/lamp.yml"
+      when: "'lamp' in option"
+
+    - name: Ejecutar instalación de WP
+      import_tasks: "wordpress/wordpress.yml"
+      when: "'wordpress' in option"
+
+    - name: Ejecutar instalación de WP
+      import_tasks: "nextcloud/nextcloud.yml"
+      when: "'nextcloud' in option"

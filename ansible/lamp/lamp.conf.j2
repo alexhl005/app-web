@@ -1,0 +1,17 @@
+<VirtualHost 127.0.0.1:8080>
+    ServerAdmin admin@localhost
+    ServerName {{ lampDomain }}
+    ServerAlias www.{{ lampDomain }}
+    DocumentRoot {{ virtualRoot }}/lamp
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    <Directory {{ virtualRoot }}/lamp>
+          Options -Indexes
+          AllowOverride All
+    </Directory>
+
+    <IfModule mod_dir.c>
+        DirectoryIndex index.php index.html index.cgi index.pl  index.xhtml index.htm
+    </IfModule>
+</VirtualHost>

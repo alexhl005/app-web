@@ -1,0 +1,102 @@
+    - name: Añadir dominio wp a /etc/hosts en servidor
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        insertafter: "127.0.0.1 localhost"
+        line: "127.0.0.1 {{ wpDomain }}"
+
+    # Configuración de Apache para WordPress
+    - name: Create document root
+      file:
+        path: "{{ virtualRoot }}/wp"
+        state: directory
+        owner: "vsftpd"
+        group: "ansible"
+        mode: '0775'
+      tags: [apacheWP]
+
+    - name: Set up Apache VirtualHost
+      template:
+        src: "wpApache.conf.j2"
+        dest: "/etc/apache2/sites-available/{{ wpDomain }}.conf"
+      tags: [apacheWP]
+
+    - name: Enable new site
+      shell: /usr/sbin/a2ensite {{ wpDomain }}.conf
+      tags: [apacheWP]
+
+    - name: Restart Apache to apply changes
+      service:
+        name: apache2
+        state: restarted
+      tags: [apacheWP]
+
+    # Configuración de MariaDB para WordPress
+    - name: Creates database for WordPress
+      mysql_db:
+        name: "{{ wpDB }}"
+        state: present
+        login_user: root
+        login_password: "{{ mysqlRootPassword }}"
+      tags: [ mysql ]
+
+    - name: Create MySQL user for WordPress
+      mysql_user:
+        name: "{{ wpDBU }}"
+        password: "{{ wpDBP }}"
+        priv: "{{ wpDB }}.*:ALL"
+        state: present
+        login_user: root
+        login_password: "{{ mysqlRootPassword }}"
+      tags: [ mysql ]
+
+    # Configuración de WordPress
+    - name: Download and unpack latest WordPress
+      unarchive:
+        src: https://wordpress.org/latest.tar.gz
+        dest: "{{ virtualRoot }}/{{ wpDomain }}"
+        remote_src: yes
+        creates: "{{ virtualRoot }}/{{ wpDomain }}/wordpress"
+      tags: [ wordpress ]
+
+    - name: Set permissions for directories
+      shell: '/usr/bin/find {{ virtualRoot }}/{{ wpDomain }}/wordpress/ -type d -exec chmod -R 775 {} \;'
+      tags: [ wordpress ]
+
+    - name: Set permissions for files
+      shell: '/usr/bin/find {{ virtualRoot }}/{{ wpDomain }}/wordpress/ -type f -exec chmod 640 {} \;'
+      tags: [ wordpress ]
+
+    - name: Set up wp-config
+      template:
+        src: "wpConfig.php.j2"
+        dest: "{{ virtualRoot }}/{{ wpDomain }}/wordpress/wp-config.php"
+      tags: [ wordpress ]
+      
+    # Configuración de Nginx para WordPress
+
+    - name: Set up Nginx-WP VirtualHost default
+      template:
+        src: "wpNginx.conf.j2"
+        dest: "/etc/nginx/sites-available/{{ wpDomain }}"
+      tags: [ nginx ]
+
+    - name: Crear enlace simbólico para habilitar el sitio en Nginx
+      file:
+        src: /etc/nginx/sites-available/{{ wpDomain }}
+        dest: /etc/nginx/sites-enabled/{{ wpDomain }}
+        state: link
+      tags: [ nginx ]
+
+    - name: Reiniciar Nginx para aplicar cambios
+      service:
+        name: nginx
+        state: restarted
+      become: yes
+      tags: [ nginx ]
+
+    # Reiniciar MySQL para aplicar cambios
+    - name: Restart MySQL to apply changes
+      service:
+        name: mariadb
+        state: restarted
+      tags: [ mysql ]

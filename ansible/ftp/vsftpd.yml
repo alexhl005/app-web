@@ -1,0 +1,76 @@
+    - name: Instalar paquetes requeridos
+      apt:
+        pkg:
+          - vsftpd
+          - libpam-pwdfile
+          - apache2
+        update_cache: yes
+        state: present
+
+    - name: Instalar bcrypt-tool via snap
+      snap:
+        name: bcrypt-tool
+        state: present
+
+    - name: Crear configuración de vsftpd
+      template:
+        src: "vsftpd.conf.j2"
+        dest: "/etc/vsftpd.conf"
+
+    - name: Crear usuario vsftpd
+      user:
+        name: vsftpd
+        home: /home/vsftpd
+        group: nogroup
+        shell: /bin/false
+        create_home: yes
+        system: yes
+
+    - name: Configurar permisos de usuario virtual
+      file:
+        path: "{{ virtualRoot }}"
+        state: directory
+        owner: vsftpd
+        group: nogroup
+        mode: '0755'
+        recurse: yes
+
+    - name: Crear directorio de configuración de usuarios
+      file:
+        path: /etc/vsftpd/userconfig
+        state: directory
+        mode: '0755'
+
+    - name: Configurar usuario virtual
+      blockinfile:
+        path: /etc/vsftpd/userconfig/{{ ftpUser }}
+        create: yes
+        block: |
+          local_root={{ virtualRoot }}
+
+    - name: Configurar autenticación PAM
+      copy:
+        dest: /etc/pam.d/vsftpd
+        content: |
+          auth required pam_pwdfile.so pwdfile /etc/vsftpd/ftpd.passwd
+          account required pam_permit.so
+
+    - name: Crear contraseña de usuario
+      shell: >
+        htpasswd -c -p -b /etc/vsftpd/ftpd.passwd {{ ftpUser }}
+        $(bcrypt-tool hash {{ ftpPass }})
+
+    - name: Generar certificado SSL
+      command: >
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048
+        -keyout /etc/ssl/private/vsftpd.pem
+        -out /etc/ssl/private/vsftpd.pem
+        -subj "/CN={{ domainName }}"
+      args:
+        creates: /etc/ssl/private/vsftpd.pem
+
+    - name: Habilitar y reiniciar vsftpd
+      service:
+        name: vsftpd
+        enabled: yes
+        state: restarted
