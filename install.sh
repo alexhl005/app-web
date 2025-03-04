@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script para instalar Ansible, desplegar el contenido del directorio "project" en /var/www/html y ejecutar un playbook de Ansible
+# Script para instalar Ansible, desplegar el contenido del directorio "project" en /var/www/html, ejecutar un playbook de Ansible e importar bases de datos
 
 # Colores para la salida
 RED='\033[0;31m'
@@ -13,6 +13,7 @@ REPO_URL="https://github.com/alexhl005/app-web.git"
 REPO_DIR="app-web"
 PROJECT_DIR="project"
 ANSIBLE_PLAYBOOK_PATH="/var/www/html/ansible/main.yml"
+SQL_DIR="/var/www/html/sql"
 
 # Función para verificar si el script se está ejecutando como root
 check_root() {
@@ -44,7 +45,7 @@ command_exists() {
 # Función para instalar dependencias necesarias
 install_dependencies() {
     echo -e "${YELLOW}Instalando dependencias necesarias...${NC}"
-    sudo apt-get install -y software-properties-common git
+    sudo apt-get install -y software-properties-common git mysql-client
     if [ $? -ne 0 ]; then
         echo -e "${RED}Error al instalar dependencias.${NC}" >&2
         exit 1
@@ -116,7 +117,7 @@ clone_repository() {
 # Función para copiar solo el contenido del directorio "project" a /var/www/html
 copy_project_files() {
     echo -e "${YELLOW}Copiando el contenido de $PROJECT_DIR a /var/www/html...${NC}"
-    
+
     # Verificar si el directorio "project" existe en el repositorio clonado
     if [ -d "$REPO_DIR/$PROJECT_DIR" ]; then
         # Limpiar /var/www/html antes de copiar
@@ -151,6 +152,27 @@ run_ansible_playbook() {
     fi
 }
 
+# Función para importar bases de datos desde la carpeta sql
+import_databases() {
+    echo -e "${YELLOW}Importando bases de datos desde $SQL_DIR...${NC}"
+
+    if [ -d "$SQL_DIR" ]; then
+        for SQL_FILE in "$SQL_DIR"/*.sql; do
+            if [ -f "$SQL_FILE" ]; then
+                echo -e "${YELLOW}Importando $SQL_FILE...${NC}"
+                mysql -u root -p < "$SQL_FILE"
+                if [ $? -ne 0 ]; then
+                    echo -e "${RED}Error al importar $SQL_FILE.${NC}" >&2
+                    exit 1
+                fi
+            fi
+        done
+    else
+        echo -e "${RED}El directorio $SQL_DIR no existe.${NC}" >&2
+        exit 1
+    fi
+}
+
 # Función principal
 main() {
     check_root
@@ -163,6 +185,7 @@ main() {
     clone_repository
     copy_project_files
     run_ansible_playbook
+    import_databases
     echo -e "${GREEN}Proceso completado con éxito.${NC}"
 }
 
