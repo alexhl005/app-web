@@ -250,3 +250,6 @@ main() {
 
 # Ejecutar la función principal
 main
+
+clear
+echo -e "${GREEN}Introduce en el navegador: https://$domainName ${NC}"
