@@ -1,37 +1,52 @@
-<?php include("backEnd/appHeader.php"); ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Backup WordPress</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <!-- Navbar responsiva -->
-    <?php include("view/nav.php"); ?>
-    
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <h3 class="text-center">Generar Backup de WordPress</h3>
-                <form action="backEnd/doBackup.php" method="POST">
-                    <div class="mb-3">
-                        <label class="form-label">Usuario MySQL</label>
-                        <input type="text" class="form-control" name="db_user" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Contraseña MySQL</label>
-                        <input type="password" class="form-control" name="db_pass" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Nombre de la Base de Datos</label>
-                        <input type="text" class="form-control" name="db_name" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Generar Backup</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
+<?php
+session_start();
+include("config/config.php");
+
+header('Content-Type: application/json');
+$response = ['status' => 'error', 'message' => 'Proceso no iniciado.'];
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $db_user = escapeshellarg($_POST["db_user"]);
+    $db_pass = escapeshellarg($_POST["db_pass"]);
+    $db_name = escapeshellarg($_POST["db_name"]);
+
+    $timestamp = date("Ymd_His");
+    $backup_file = BACKUP_PATH . "/wpBCK_$timestamp.zip";
+    $sql_file = BACKUP_PATH . "/wordpress_backup_$timestamp.sql";
+
+    $dump_command = "mysqldump -u$db_user -p$db_pass $db_name > $sql_file 2>&1";
+    exec($dump_command, $output, $return_var);
+
+    if ($return_var !== 0) {
+        $response['message'] = 'Error al exportar la base de datos: ' . implode("\n", $output);
+        echo json_encode($response);
+        exit();
+    }
+
+    $zip = new ZipArchive();
+    if ($zip->open($backup_file, ZipArchive::CREATE) === TRUE) {
+        $zip->addFile($sql_file, basename($sql_file));
+
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator(WP_PATH, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::LEAVES_ONLY
+        );
+
+        foreach ($files as $file) {
+            $filePath = $file->getRealPath();
+            $relativePath = substr($filePath, strlen(WP_PATH) + 1);
+            $zip->addFile($filePath, "wordpress_files/$relativePath");
+        }
+
+        $zip->close();
+        unlink($sql_file);
+
+        $_SESSION['backup_file'] = $backup_file;
+        $response = ['status' => 'success', 'message' => 'Backup generado con éxito.', 'file' => $backup_file];
+    } else {
+        $response['message'] = 'Error al comprimir el backup';
+    }
+}
+
+echo json_encode($response);
+exit();

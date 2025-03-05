@@ -105,6 +105,15 @@ $msg = (isset($_GET['msg']) && array_key_exists($_GET['msg'], $messages))
     .nav-tabs .nav-link {
       color: var(--bs-primary);
     }
+    .left-side p {
+  color: #000; /* Asegura que el texto sea oscuro */
+  background: rgba(165, 200, 205, 0.5); /* Fondo semitransparente */
+  padding: 10px; /* Añade espacio interno */
+  border-radius: 5px; /* Bordes redondeados */
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.2); /* Sombras suaves */
+  display: inline-block; /* Ajusta el fondo al contenido */
+}
+
   </style>
   
   <!-- Bootstrap JS + jQuery -->

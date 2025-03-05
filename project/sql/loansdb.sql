@@ -24,6 +24,10 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `loansdb`
 --
+CREATE USER 'loansu'@'localhost' IDENTIFIED BY 'loansu';
+GRANT ALL PRIVILEGES ON loansdb.* TO 'loansu'@'localhost';
+FLUSH PRIVILEGES;
+
 
 -- --------------------------------------------------------
 
