@@ -279,4 +279,5 @@ main() {
 main
 
 clear
+echo -e "${GREEN}Añade en /etc/hosts la ip de tu servidor con el dominio puesto: $domainName ${NC}"
 echo -e "${GREEN}Introduce en el navegador: https://$domainName ${NC}"
