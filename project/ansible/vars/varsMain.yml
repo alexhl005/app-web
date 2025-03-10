@@ -19,7 +19,7 @@
 
 # Instalation Option
   option: [ 'lamp', 'wp', 'md', '' ]
-  commonNames: [ '/CN=lampdomain.com', '/CN=wpdomain.com', '/CN=moodledomain.com', '/CN={{mdDomain}}' ]
+  commonNames: [ '/CN={{lampDomain}}', '/CN={{wpDomain}}', '/CN={{ncDomain}}', '/CN={{mdDomain}}' ]
 
 #VSFTPD.YML
   #Extra Vars

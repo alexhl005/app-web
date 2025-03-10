@@ -47,11 +47,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     file_put_contents($yamlFile, $yamlContent);
     error_log("YAML content updated successfully."); // Debug
 
-    // Ejecutar ansible
+    // 6. Ejecutar Ansible
     $command = "sudo ansible-playbook -u www-data ansible/main.yml --skip-tags 'prerequisites' 2>&1";
+    $output = shell_exec($command);
 
-    // 7. Respuesta al cliente
-    echo json_encode(["status" => "success", "message" => "Datos procesados correctamente."]);
+    // Registrar la salida del comando
+    error_log("Salida del comando Ansible: " . $output);
+
+    // Verificar si el comando se ejecutó correctamente
+    if (strpos($output, "PLAY RECAP") !== false) {
+        // Si el comando se ejecutó correctamente
+        echo json_encode(["status" => "success", "message" => "Datos procesados y Ansible ejecutado correctamente.", "output" => $output]);
+    } else {
+        // Si hubo un error en la ejecución del comando
+        echo json_encode(["status" => "error", "message" => "Error al ejecutar Ansible.", "output" => $output]);
+    }
 } else {
     echo json_encode(["status" => "error", "message" => "Método no permitido."]);
 }
