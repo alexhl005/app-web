@@ -127,10 +127,10 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="mysql_root" class="form-label">Contraseña MySQL root</label>
+                        <label for="mysqlRootPassword" class="form-label">Contraseña MySQL root</label>
                         <div class="input-group">
                             <span class="input-group-text">🗄</span>
-                            <input type="password" id="mysql_root" name="mysql_root" class="form-control"
+                            <input type="password" id="mysqlRootPassword" name="mysqlRootPassword" class="form-control"
                                 placeholder="Contraseña MySQL root" required>
                         </div>
                     </div>
