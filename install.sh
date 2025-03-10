@@ -16,6 +16,8 @@ ANSIBLE_PLAYBOOK_PATH="/var/www/html/ansible/main.yml"
 SQL_DIR="/var/www/html/sql"
 VARS_FILE="/var/www/html/ansible/vars/varsMain.yml"
 DATABASE_NAME="loansdb"
+DATABASE_USER="loansu"
+DATABASE_PASSWORD="loansu"
 
 # Función para solicitar el valor de domainName
 ask_domain_name() {
@@ -228,6 +230,30 @@ import_databases() {
     fi
 }
 
+# Función para crear el usuario loansu y otorgarle permisos
+create_database_user() {
+    echo -e "${YELLOW}Creando el usuario $DATABASE_USER y otorgando permisos sobre $DATABASE_NAME...${NC}"
+    sudo mysql -u root -e "CREATE USER IF NOT EXISTS '$DATABASE_USER'@'localhost' IDENTIFIED BY '$DATABASE_PASSWORD';"
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Error al crear el usuario $DATABASE_USER.${NC}" >&2
+        exit 1
+    fi
+
+    sudo mysql -u root -e "GRANT ALL PRIVILEGES ON $DATABASE_NAME.* TO '$DATABASE_USER'@'localhost';"
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Error al otorgar permisos al usuario $DATABASE_USER.${NC}" >&2
+        exit 1
+    fi
+
+    sudo mysql -u root -e "FLUSH PRIVILEGES;"
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Error al actualizar los privilegios.${NC}" >&2
+        exit 1
+    fi
+
+    echo -e "${GREEN}Usuario $DATABASE_USER creado y permisos otorgados correctamente.${NC}"
+}
+
 # Función principal
 main() {
     check_root
@@ -243,6 +269,7 @@ main() {
     check_and_install_mariadb
     create_database
     import_databases
+    create_database_user
     update_vars_file
     run_ansible_playbook
     echo -e "${GREEN}Proceso completado con éxito.${NC}"

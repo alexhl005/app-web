@@ -9,7 +9,7 @@
   phpmyadminPass: 'admin'
     
   #MySQL Vars
-  mysqlRootPassword: "root"
+  mysqlRootPassword: "mysqlrootpass"
 
   #Dependencies
   phpModules: [ 'php-tokenizer', 'php-curl', 'php-gd', 'php-mbstring', 'php-xmlrpc', 'php-soap', 'php-intl', 'php-zip', 'php-imagick', 'php-gmp', 'php-bcmath' ]
@@ -18,24 +18,24 @@
   a2modules: [ 'rewrite', 'headers', 'env', 'dir', 'mime']
 
 # Instalation Option
-  option: [ '', '', '', '' ]
-  commonNames: [ '/CN={{lampDomain}}', '/CN={{wpDomain}}', '/CN={{ncDomain}}', '/CN={{mdDomain}}' ]
+  option: [ 'lamp', 'wp', 'md', '' ]
+  commonNames: [ '/CN=lampdomain.com', '/CN=wpdomain.com', '/CN=moodledomain.com', '/CN={{mdDomain}}' ]
 
 #VSFTPD.YML
   #Extra Vars
-  ftpUser: "ftpu"
-  ftpPass: "ftpu"
+  ftpUser: "ftpuser"
+  ftpPass: "ftppass"
 
 #LAMP.YML
   #Extra Vars
-  lampDomain: "vb"
+  lampDomain: "lampdomain.com"
 
 #WORDPRESS.YML
   #Extra vars
-  wpDomain: "wp"
+  wpDomain: "wpdomain.com"
   wpDB: "wpdb"
-  wpDBU: "wpu"
-  wpDBP: "wpu"
+  wpDBU: "wpdbuser"
+  wpDBP: "wpdbpass"
 
 #NEXTCLOUD.YML
   #Extra vars
@@ -43,3 +43,10 @@
   ncDB: "ncdb"
   ncDBU: "ncu"
   ncDBP: "ncu"
+
+#MOODLE.YML
+  #Extra vars
+  mdDomain: "moodledomain.com"
+  mdDB: "mddb"
+  mdDBU: "moodledbuser"
+  mdDBP: "moodledbpass"

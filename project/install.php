@@ -2,6 +2,7 @@
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,44 +13,53 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         /* Estética global similar a la del formulario de backup */
-        body { 
-            background-color: #f8f9fa; 
+        body {
+            background-color: #f8f9fa;
         }
-        .container { 
-            max-width: 600px; 
-            margin-top: 50px; 
+
+        .container {
+            max-width: 600px;
+            margin-top: 50px;
         }
-        .form-container { 
-            background: white; 
-            padding: 20px; 
-            border-radius: 10px; 
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        .btn-primary { 
-            width: 100%; 
+
+        .btn-primary {
+            width: 100%;
         }
+
         /* Estilos para selección de logos */
-        .hidden { 
-            display: none; 
+        .hidden {
+            display: none;
         }
-        .logo-option { 
-            cursor: pointer; 
-            border: 2px solid transparent; 
-            padding: 10px; 
-            width: 100px; 
+
+        .logo-option {
+            cursor: pointer;
+            border: 2px solid transparent;
+            padding: 10px;
+            width: 100px;
             transition: border-color 0.3s ease;
         }
-        .logo-option.selected { 
-            border-color: #007bff; 
+
+        .logo-option.selected {
+            border-color: #007bff;
         }
-        .logo-container { 
-            text-align: center; 
+
+        .logo-container {
+            text-align: center;
         }
-        .logo-label { 
-            display: block; 
-            margin-top: 5px; 
-            font-weight: bold; 
+
+        .logo-label {
+            display: block;
+            margin-top: 5px;
+            font-weight: bold;
         }
+
         /* Modal y demás estilos se mantienen */
         .modal-backdrop {
             position: fixed;
@@ -61,6 +71,7 @@
             backdrop-filter: blur(4px);
             z-index: 1050;
         }
+
         .modal-dialog {
             display: flex;
             align-items: center;
@@ -68,6 +79,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Navbar responsiva -->
     <?php include("view/nav.php"); ?>
@@ -82,15 +94,15 @@
                         <span class="logo-label">LAMP</span>
                     </div>
                     <div class="col-6 col-md-3 logo-container">
-                        <img src="img/wp.png" class="img-fluid logo-option" data-option="wordpress">
+                        <img src="img/wp.png" class="img-fluid logo-option" data-option="wp">
                         <span class="logo-label">WordPress</span>
                     </div>
                     <div class="col-6 col-md-3 logo-container">
-                        <img src="img/nc.png" class="img-fluid logo-option" data-option="nextcloud">
+                        <img src="img/nc.png" class="img-fluid logo-option" data-option="nc">
                         <span class="logo-label">NextCloud</span>
                     </div>
                     <div class="col-6 col-md-3 logo-container">
-                        <img src="img/moodle.png" class="img-fluid logo-option" data-option="moodle">
+                        <img src="img/moodle.png" class="img-fluid logo-option" data-option="md">
                         <span class="logo-label">Moodle</span>
                     </div>
                 </div>
@@ -99,31 +111,34 @@
                 <div id="common-fields" class="hidden">
                     <h4>Datos FTP y MySQL</h4>
                     <div class="mb-3">
-                        <label for="ftp_user" class="form-label">Usuario FTP</label>
+                        <label for="ftpUser" class="form-label">Usuario FTP</label>
                         <div class="input-group">
                             <span class="input-group-text">👤</span>
-                            <input type="text" id="ftp_user" name="ftp_user" class="form-control" placeholder="Usuario FTP" required>
+                            <input type="text" id="ftpUser" name="ftpUser" class="form-control"
+                                placeholder="Usuario FTP" required>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="ftp_pass" class="form-label">Contraseña FTP</label>
+                        <label for="ftpPass" class="form-label">Contraseña FTP</label>
                         <div class="input-group">
                             <span class="input-group-text">🔑</span>
-                            <input type="password" id="ftp_pass" name="ftp_pass" class="form-control" placeholder="Contraseña FTP" required>
+                            <input type="password" id="ftpPass" name="ftpPass" class="form-control"
+                                placeholder="Contraseña FTP" required>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label for="mysql_root" class="form-label">Contraseña MySQL root</label>
                         <div class="input-group">
                             <span class="input-group-text">🗄</span>
-                            <input type="password" id="mysql_root" name="mysql_root" class="form-control" placeholder="Contraseña MySQL root" required>
+                            <input type="password" id="mysql_root" name="mysql_root" class="form-control"
+                                placeholder="Contraseña MySQL root" required>
                         </div>
                     </div>
                 </div>
 
                 <!-- Campos dinámicos por opción, con iconos -->
                 <div id="dynamic-fields"></div>
-                
+
                 <div class="text-center mt-5">
                     <button type="submit" class="btn btn-primary w-25">Instalar</button>
                 </div>
@@ -152,10 +167,10 @@
     </div>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             setTimeout(() => $('body').addClass('show'), 100);
 
-            $('.logo-option').click(function() {
+            $('.logo-option').click(function () {
                 $(this).toggleClass('selected');
                 let selectedOptions = $('.logo-option.selected');
                 $('#common-fields').toggle(selectedOptions.length > 0);
@@ -164,7 +179,7 @@
 
             function updateDynamicFields() {
                 $('#dynamic-fields').html('');
-                $('.logo-option.selected').each(function() {
+                $('.logo-option.selected').each(function () {
                     let option = $(this).data('option');
                     let html = `<div class='mt-3'>
                         <h4>${option.toUpperCase()}</h4>
@@ -172,33 +187,33 @@
                             <label class='form-label'>Dominio</label>
                             <div class='input-group'>
                                 <span class='input-group-text'>🌐</span>
-                                <input type='text' name='${option}_domain' class='form-control domain-field' placeholder='Dominio' required>
+                                <input type='text' name='${option}Domain' class='form-control domain-field' placeholder='Dominio' required>
                             </div>
                         </div>
                         <div class='mb-3'>
                             <label class='form-label'>Usuario BD</label>
                             <div class='input-group'>
                                 <span class='input-group-text'>👤</span>
-                                <input type='text' name='${option}_db_user' class='form-control' placeholder='Usuario BD' required>
+                                <input type='text' name='${option}DBU' class='form-control' placeholder='Usuario BD' required>
                             </div>
                         </div>
                         <div class='mb-3'>
                             <label class='form-label'>Contraseña BD</label>
                             <div class='input-group'>
                                 <span class='input-group-text'>🔑</span>
-                                <input type='password' name='${option}_db_pass' class='form-control' placeholder='Contraseña BD' required>
+                                <input type='password' name='${option}DBP' class='form-control' placeholder='Contraseña BD' required>
                             </div>
                         </div>
                     </div>`;
                     $('#dynamic-fields').append(html);
                 });
 
-                $('.domain-field').on('input', function() {
+                $('.domain-field').on('input', function () {
                     let domain = $(this).val().trim();
                     let domains = [];
-                    $('.domain-field').each(function() {
+                    $('.domain-field').each(function () {
                         let d = $(this).val().trim();
-                        if(d) {
+                        if (d) {
                             domains.push(d);
                         }
                     });
@@ -209,12 +224,12 @@
                 });
             }
 
-            $('#installForm').submit(function(event) {
+            $('#installForm').submit(function (event) {
                 event.preventDefault();
 
                 let domains = [];
                 let valid = true;
-                $('.domain-field').each(function() {
+                $('.domain-field').each(function () {
                     let domain = $(this).val().trim();
                     if (!/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(domain) || domains.includes(domain)) {
                         valid = false;
@@ -238,4 +253,5 @@
         });
     </script>
 </body>
+
 </html>

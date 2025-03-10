@@ -31,7 +31,13 @@
                     <a class="nav-link" href="export.php">
                         <i class="fas fa-file-export"></i> Exportar
                     </a>
-                </li>                    
+                </li>    
+                <!-- Importar  --> 
+                <li class="nav-item">
+                    <a class="nav-link" href="import.php">
+                        <i class="fas fa-file-import"></i> Importar
+                    </a>
+                </li>                 
                 <!-- Cuenta (solo en main.php) -->
                 <?php if (basename($_SERVER['PHP_SELF']) == 'main.php'): ?>
                     <li class="nav-item">

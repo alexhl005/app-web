@@ -57,7 +57,8 @@ switch($op) {
 
 	case 'ur':
 		$name = sanitize($_POST['name']);
-	    $query = "INSERT INTO users (mail, pass, name) VALUES ('$mail', '$pass', '$name')";
+	    $hashed_pass = password_hash($pass, PASSWORD_DEFAULT);
+            $query = "INSERT INTO users (mail, pass, name) VALUES ('$mail', '$hashed_pass', '$name')";
 	    $result = doQuery($query);
 		$url = '../index.php';
 		$msg = ($result > 0)? 'reg_success':'reg_error';

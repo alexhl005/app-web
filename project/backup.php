@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $backup_file = BACKUP_PATH . "/wpBCK_$timestamp.zip";
     $sql_file = BACKUP_PATH . "/wordpress_backup_$timestamp.sql";
 
-    $dump_command = "mysqldump -u$db_user -p$db_pass $db_name > $sql_file 2>&1";
+    $dump_command = "mysqldump -u $db_user -p$db_pass --databases $db_name > $sql_file 2>&1";
     exec($dump_command, $output, $return_var);
 
     if ($return_var !== 0) {
