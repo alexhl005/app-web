@@ -147,6 +147,15 @@
         recurse: yes
       tags: [ prerequisites ]
 
+    - name: Asignar permisos a www-data en /var/www/html
+      ansible.builtin.file:
+        path: /var/www/html
+        owner: www-data
+        group: ansible
+        recurse: yes
+        mode: '775'
+      tags: [ prerequisites ]
+
     - name: Set up Apache VirtualHost
       template:
         src: "main.conf.j2"
